@@ -1,8 +1,6 @@
 <?php
-    $baseUrl = getenv('BASE_URL');
-    // if(empty($baseUrl)) {
-    //     $baseUrl = 'http://localhost:8084'; // Tu puerto local del docker-compose
-    // }
-    // Elimina la barra final si existe para estandarizar
-    define("BASE_URL", rtrim($baseUrl, '/'));
+    $datos=  parse_ini_file('config.ini');
+    if(isset($datos['base_url'])){
+        define("BASE_URL", getenv('BASE_URL') ?: $datos['base_url']);
+    }
 ?>

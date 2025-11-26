@@ -1,45 +1,70 @@
 <?php
-// config/configDB.php
 
 class configDB {
-    private $pdo;
 
-    public function getInstance() {
-        if ($this->pdo === null) {
-            // 1. LEER VARIABLES DE ENTORNO (Render)
-            $host = getenv('DB_HOST');
-            $db   = getenv('DB_NAME');
-            $user = getenv('DB_USER');
-            $pass = getenv('DB_PASS');
-            $port = getenv('DB_PORT') ?: 3306;
+     private static PDO $instance;
+     private static $host;
+     private static $user;
+     private static $pass;
 
-            // 2. CONFIGURACIÓN LOCAL (Si no hay variables de entorno, usa esto)
-            if (!$host) {
-                $host = 'db'; // Nombre del servicio en tu docker-compose local
-                $db   = 'products_db';
-                $user = 'usuario_app';
-                $pass = 'clave_app';
-            }
 
-            try {
-                $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
-                
-                $options = [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    // ESTO ES CLAVE PARA MARIADB CLOUD (SSL)
-                    PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/ca-certificates.crt',
-                ];
+     public function __construct(){
+        //Compruebo si esta inicilizado
+        if(!isset(self::$instance)){
+            //recuperar los valores del .ini
+            $this->getValues();
 
-                $this->pdo = new PDO($dsn, $user, $pass, $options);
-
-            } catch (PDOException $e) {
-                // En producción no mostrar errores detallados
-                error_log($e->getMessage()); // Guardar en log interno
-                die("Error de conexión a la Base de Datos. Revisa los logs.");
-            }
+            //Crear la conexion
+            $this->connect();
         }
-        return $this->pdo;
-    }
+     }
+
+         private function connect(){
+
+        // Render (SkySQL exige SSL)
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false, // SSL sin validar CA
+        ];
+
+        self::$instance = new PDO(self::$host, self::$user, self::$pass, $options);
+     }
+
+     private function getValues(){
+        
+    // 1) Si estamos en Render, pues hay que usar variables de entorno
+      if (getenv('DB_HOST')) {
+
+         $host = getenv('DB_HOST');
+         $name = getenv('DB_NAME');
+         $user = getenv('DB_USER');
+         $pass = getenv('DB_PASSWORD');
+         $port = getenv('DB_PORT') ?: 3306;
+
+         // construimos el DSN igual que esta en config.ini
+         self::$host = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+         self::$user = $user;
+         self::$pass = $pass;
+
+      }
+      else{
+         // 2) En local,  leer config.ini como siempre
+         $conf = parse_ini_file('config.ini');
+
+         self::$host = $conf['host']; 
+         self::$user = $conf['user'];
+         self::$pass = $conf['pass'];
+      }
+
+     }
+
+     /**
+      * Get the value of instance
+      */ 
+     public function getInstance()
+     {
+          return self::$instance;
+     }
 }
+
 ?>
