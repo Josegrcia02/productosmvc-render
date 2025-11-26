@@ -1,8 +1,9 @@
 <?php
-    #Se define una constante con la URL BASE, para poder acceder a los recursos
-    #Se indica este fichero en el index.php
-    $datos=  parse_ini_file('config.ini');
-    if(isset($datos['base_url'])){
-        define("BASE_URL", $datos['base_url']);
+    $baseUrl = getenv('BASE_URL');
+    if(!$baseUrl) {
+        $baseUrl = 'http://localhost:8084'; // Tu puerto local del docker-compose
     }
+    // Elimina la barra final si existe para estandarizar
+    define("BASE_URL", rtrim($baseUrl, '/'));
+?>
 ?>

@@ -1,24 +1,19 @@
 <IfModule mod_rewrite.c>
     Options +FollowSymLinks
     RewriteEngine On
+    
+    # Define la base para que Render sepa dónde empieza la web
+    RewriteBase /
 
-    #Error404
-    #ErrorDocument 404 http://localhost/2024-11-05/view/error404.php
-
+    # Evita que se vean los archivos de sistema o git si alguien intenta acceder
+    RewriteRule ^\.git - [F,L]
+    RewriteRule ^composer\.(json|lock)$ - [F,L]
+    
+    # IMPORTANTE: Si el archivo o carpeta existe (css, imágenes), lo muestra directamente
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteRule ^producto/lista$ index.php?action=listProduct [L]
-	RewriteRule ^producto/nuevo$ index.php?action=addProduct [L]
-	RewriteRule ^producto/buscar$ index.php?action=searchProduct [L]
-    RewriteRule ^producto/insertar$ index.php?action=insertProduct [L]
-    
-    #Forma generica para las 4 opciones
-    #RewriteRule ^([a-zA-Z]+)[/]?$ index.php?action=$1 [L]
 
+    # Todo lo demás se envía a index.php para que tu Router (Controller) lo procese
+    # [QSA] mantiene los parámetros de búsqueda si los hubiera (ej: ?id=1)
+    RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
-
-# Flag: [L]
-# Stop the rewriting process immediately and don't apply any more rules. 
-
-# Referencia:
-# - https://httpd.apache.org/docs/current/mod/mod_rewrite.html
