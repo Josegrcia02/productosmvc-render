@@ -1,0 +1,12 @@
+{
+    "name": "mi-proyecto/api-php",
+    "description": "Proyecto PHP MVC para Render",
+    "require": {
+        "php": "^8.0",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "autoload": {
+        "classmap": ["model/", "repository/", "view/", "config/"]
+    }
+}
